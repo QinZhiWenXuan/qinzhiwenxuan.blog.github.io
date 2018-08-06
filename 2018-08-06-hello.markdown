@@ -2,7 +2,14 @@
 layout: post
 title:  "Hello Jekyll"
 date:   2018-08-06 11:23:15 +0800
-categories: jekyll update
+categories: gray
 description: I am description
 ---
 我的Jekyll Blog
+<ul>
+    <li>
+	  {% highlight ruby %}
+      我是高亮的标签
+	  {% endhighlight %}
+    </li>
+</ul>

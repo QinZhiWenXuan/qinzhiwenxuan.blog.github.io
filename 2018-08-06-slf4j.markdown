@@ -1,0 +1,199 @@
+---
+layout: post
+title:  "slf4j-logback"
+date:   2018-08-06 13:50:15 +0800
+categories: formal java
+description: slf4j 日志框架分析
+---
+关于JAVA 日志<a href='https://www.slf4j.org/manual.html'>slf4j</a>的一些简单的分析
+
+{% highlight ruby %}
+The Simple Logging Facade for Java (SLF4J) 
+serves as a simple facade or abstraction for various logging frameworks, 
+such as java.util.logging, logback and log4j.
+SLF4J allows the end-user to plug in the desired logging framework at deployment time.
+{% endhighlight %}
+简单来说:<br/>
+	slf4j就是一套抽象的日志门面(Facade)。<br/>
+	你可以灵活的接入一些实现类java.util.logging、logback、log4j。<br/>
+当然不同的实现有不同的处理,笔者此处接入的实现是logback。<br/>
+{% highlight ruby %}
+<slf4j.version>1.7.25</slf4j.version>
+<logback.version>1.2.3</logback.version>
+
+public class Application {
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
+
+    public static void main(String[] args) {
+        logger.trace("Hello World!");
+        logger.debug("How are you today?");
+        logger.info("I am fine.");
+        logger.warn("I love programming.");
+        logger.error("I am programming.");
+    }
+}
+{% endhighlight %}
+我们知道,当在JAVA 执行 main方法的时候会先把Class Load进来。<br/>
+{% highlight ruby %}
+[Loaded org.slf4j.spi.LoggerFactoryBinder from file:/D:/repos/maven/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar]
+[Loaded org.slf4j.impl.StaticLoggerBinder from file:/D:/repos/maven/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar]
+{% endhighlight %}
+那么我们不禁要问,当有多个slf4j实现类的时候咋办?<br/>
+{% highlight ruby %}
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/D:/repos/maven/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/D:/repos/maven/org/slf4j/slf4j-log4j12/1.7.25/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/D:/repos/maven/org/slf4j/slf4j-jdk14/1.7.25/slf4j-jdk14-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+[Loaded org.slf4j.spi.LoggerFactoryBinder from file:/D:/repos/maven/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar]
+[Loaded org.slf4j.impl.StaticLoggerBinder from file:/D:/repos/maven/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar]
+{% endhighlight %}
+如你所见,先加载哪个就用哪个。<br/>
+我为什么要把这一段贴出来呢?<br/>
+当然不是为了水数字,毕竟我不是按字数收费。因为在slf4j中一个很重要的接口
+{% highlight ruby %}
+/**
+ * An internal interface which helps the static {@link org.slf4j.LoggerFactory} 
+ * class bind with the appropriate {@link ILoggerFactory} instance. 
+ * 
+ * @author Ceki G&uuml;lc&uuml;
+ */
+public interface LoggerFactoryBinder {
+
+    /**
+     * Return the instance of {@link ILoggerFactory} that 
+     * {@link org.slf4j.LoggerFactory} class should bind to.
+     * 
+     * @return the instance of {@link ILoggerFactory} that 
+     * {@link org.slf4j.LoggerFactory} class should bind to.
+     */
+    public ILoggerFactory getLoggerFactory();
+
+    /**
+     * The String form of the {@link ILoggerFactory} object that this 
+     * <code>LoggerFactoryBinder</code> instance is <em>intended</em> to return. 
+     * 
+     * <p>This method allows the developer to interrogate this binder's intention
+     * which may be different from the {@link ILoggerFactory} instance it is able to 
+     * yield in practice. The discrepancy should only occur in case of errors.
+     * 
+     * @return the class name of the intended {@link ILoggerFactory} instance
+     */
+    public String getLoggerFactoryClassStr();
+}
+{% endhighlight %}
+org.slf4j.impl.StaticLoggerBinder是LoggerFactoryBinder实现类。<br/>
+你可以灵活的接入一些实现类java.util.logging、logback、log4j,当你有多个的时候该怎么选择呢?<br/>
+{% highlight ruby %}
+SLF4J API is designed to bind with one and only one underlying logging framework at a time. 
+If more than one binding is present on the class path, SLF4J will emit a warning, listing the location of those bindings.
+
+When multiple bindings are available on the class path, select one and only one binding you wish to use, and remove the other bindings. 
+For example, 
+if you have both slf4j-simple-1.8.0-beta2.jar and slf4j-nop-1.8.0-beta2.jar on the class path and you wish to use the nop (no-operation) binding, 
+then remove slf4j-simple-1.8.0-beta2.jar from the class path.
+
+The list of locations that SLF4J provides in this warning usually provides sufficient information to identify 
+the dependency transitively pulling in an unwanted SLF4J binding into your project. 
+In your project's pom.xml file, exclude this SLF4J binding when declaring the unscrupulous dependency.
+For example, 
+cassandra-all version 0.8.1 declares both log4j and slf4j-log4j12 as compile-time dependencies.
+Thus, when you include cassandra-all as a dependency in your project, 
+the cassandra-all declaration will cause both slf4j-log4j12.jar and log4j.jar to be pulled in as dependencies. 
+In case you do not wish to use log4j as the the SLF4J backend, you can instruct Maven to exclude these two artifacts as shown 
+{% endhighlight %}
+现在该说一下slf4j的工作流程了(以下都是基于1.2.3的logback):<br/>
+当年调用LoggerFactory.getLogger(Class<?> clazz)的时候有没有思考过他是如何工作的呢?<br/>
+首先他会获取一个ILoggerFactory实例,而ILoggerFactory实例是由单例的StaticLoggerBinder产生的。<br/>
+现在你该明白我为啥要贴这么多东西来水数字了吧(罒8罒),因为这很有必要。<br/>
+这个类(StaticLoggerBinder)用了一个static块来保证初始化logback相关的配置
+{% highlight ruby %}
+    static {
+        SINGLETON.init();
+    }
+    /**
+     * Package access for testing purposes.
+     */
+    void init() {
+        try {
+            try {
+                new ContextInitializer(defaultLoggerContext).autoConfig();
+            } catch (JoranException je) {
+                Util.report("Failed to auto configure default logger context", je);
+            }
+            // logback-292
+            if (!StatusUtil.contextHasStatusListener(defaultLoggerContext)) {
+                StatusPrinter.printInCaseOfErrorsOrWarnings(defaultLoggerContext);
+            }
+            contextSelectorBinder.init(defaultLoggerContext, KEY);
+            initialized = true;
+        } catch (Exception t) { // see LOGBACK-1159
+            Util.report("Failed to instantiate [" + LoggerContext.class.getName() + "]", t);
+        }
+    }
+{% endhighlight %}
+在这一步logback完成了自动配置autoConfig(),同时绑定到容器上面contextSelectorBinder.init(defaultLoggerContext, KEY)<br/>
+先说绑定到容器上面:<br/>
+{% highlight ruby %}
+    /**
+     * FOR INTERNAL USE. This method is intended for use by  StaticLoggerBinder.
+     *  
+     * @param defaultLoggerContext
+     * @throws ClassNotFoundException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
+    public void init(LoggerContext defaultLoggerContext, Object key) throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
+                    IllegalAccessException, InvocationTargetException {
+        if (this.key == null) {
+            this.key = key;
+        } else if (this.key != key) {
+            throw new IllegalAccessException("Only certain classes can access this method.");
+        }
+
+        String contextSelectorStr = OptionHelper.getSystemProperty(ClassicConstants.LOGBACK_CONTEXT_SELECTOR);
+        if (contextSelectorStr == null) {
+            contextSelector = new DefaultContextSelector(defaultLoggerContext);
+        } else if (contextSelectorStr.equals("JNDI")) {
+            // if jndi is specified, let's use the appropriate class
+            contextSelector = new ContextJNDISelector(defaultLoggerContext);
+        } else {
+            contextSelector = dynamicalContextSelector(defaultLoggerContext, contextSelectorStr);
+        }
+    }
+{% endhighlight %}
+以笔者的项目为例,此处返回一个DefaultContextSelector,因为笔者没有配置JNDI。<br/>
+再说一下自动配置:<br/>
+{% highlight ruby %}
+    public void autoConfig() throws JoranException {
+        StatusListenerConfigHelper.installIfAsked(loggerContext);
+        URL url = findURLOfDefaultConfigurationFile(true);
+        if (url != null) {
+            configureByResource(url);
+        } else {
+            Configurator c = EnvUtil.loadFromServiceLoader(Configurator.class);
+            if (c != null) {
+                try {
+                    c.setContext(loggerContext);
+                    c.configure(loggerContext);
+                } catch (Exception e) {
+                    throw new LogbackException(String.format("Failed to initialize Configurator: %s using ServiceLoader", c != null ? c.getClass()
+                                    .getCanonicalName() : "null"), e);
+                }
+            } else {
+                BasicConfigurator basicConfigurator = new BasicConfigurator();
+                basicConfigurator.setContext(loggerContext);
+                basicConfigurator.configure(loggerContext);
+            }
+        }
+    }
+{% endhighlight %}
+在代码里面可以看出这就是通过URL去加载配置文件,这个就得要看你们URL的协议,通常都是文件协议。<br/>
+默认是解析logback.configurationFile设置的值,<br/>
+logback.configurationFile设置的值获取的值获取不到就会找logback-test.xml,<br/>
+再到logback.groovy,<br/>
+最后才是logback.xml。<br/>
+剩下的就是获取流解析转化为Configurator然后生成LoggerContext,至此大体流程完了。<br/>
+当然啦你可能看了还是很模糊,毕竟这是一个简单的分析,更多的还是需要你自己去深入
