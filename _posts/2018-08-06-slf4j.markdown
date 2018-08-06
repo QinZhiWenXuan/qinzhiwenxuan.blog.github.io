@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 title:  "slf4j-logback"
 date:   2018-08-06 13:50:15 +0800
 categories: formal java

@@ -13,20 +13,27 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: ""
+title: "聆雨听风"
+
 email: "qinzhiwenxuan@gmail.com"
-description: ""
+
+description: "人生代代无穷已,江月年年望相似"
+
 baseurl: "/" # the subpath of your site, e.g. /blog
+
 url: "https://qinzhiwenxuan.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: ""
+
 github_username:  "qinzhiwenxuan"
 
 # Build settings
-markdown: kramdown
-theme: minima
+markdown: "kramdown"
+
+theme: "minima"
+
 plugins:
   - jekyll-feed
 
+encoding: "UTF-8"
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
