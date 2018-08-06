@@ -103,7 +103,7 @@ the cassandra-all declaration will cause both slf4j-log4j12.jar and log4j.jar to
 In case you do not wish to use log4j as the the SLF4J backend, you can instruct Maven to exclude these two artifacts as shown 
 {% endhighlight %}
 现在该说一下slf4j的工作流程了(以下都是基于1.2.3的logback):<br/>
-当年调用LoggerFactory.getLogger(Class<?> clazz)的时候有没有思考过他是如何工作的呢?<br/>
+当你调用LoggerFactory.getLogger(Class<?> clazz)的时候有没有思考过他是如何工作的呢?<br/>
 首先他会获取一个ILoggerFactory实例,而ILoggerFactory实例是由单例的StaticLoggerBinder产生的。<br/>
 现在你该明白我为啥要贴这么多东西来水数字了吧(罒8罒),因为这很有必要。<br/>
 这个类(StaticLoggerBinder)用了一个static块来保证初始化logback相关的配置
@@ -192,7 +192,7 @@ In case you do not wish to use log4j as the the SLF4J backend, you can instruct 
 {% endhighlight %}
 在代码里面可以看出这就是通过URL去加载配置文件,这个就得要看你们URL的协议,通常都是文件协议。<br/>
 默认是解析logback.configurationFile设置的值,<br/>
-logback.configurationFile设置的值获取的值获取不到就会找logback-test.xml,<br/>
+当logback.configurationFile设置的值取不到就会找logback-test.xml,<br/>
 再到logback.groovy,<br/>
 最后才是logback.xml。<br/>
 剩下的就是获取流解析转化为Configurator然后生成LoggerContext,至此大体流程完了。<br/>
