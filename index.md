@@ -32,6 +32,9 @@
             var postHead = document.getElementsByClassName("post-list-heading");
             var postList = document.getElementsByClassName("post-list");
             var subscribe = document.getElementsByClassName("rss-subscribe");
+            console.debug(postHead);
+            console.debug(postList);
+            console.debug(subscribe);
             for (var i = 0; i < postHead.length ; i++) {
                 var t = postHead[i] ;
                 t.parentNode.removeChild(t);
