@@ -16,12 +16,13 @@
 </header>
 <div class="mw7 bg-white mt4 mb3 center br2-ns bt bb ba-ns b--light-gray">
     <nav class="bb b--light-gray pv4 tc" aria-label="Main">
-        {% for link in site.links %}
-        <a class="link blue hover-mid-gray mh2 pv1"
-           href="{% unless link.external %}{{ site.url }}{% endunless %}{{ link.url }}">
-            {{ link.name }}
-        </a>
-        {% endfor %}
+        <h1 class="ttu f3 mt0 lh-title cb mb2">
+            {% if is_post %}
+            {% endif %}
+            {{ page.title }}
+
+            <h5 class="fw600 light-silver mt1">{{page.description}}</h5>
+        </h1>
     </nav>
     <main class="tl f6 relative pa4 pa5-ns overflow-hidden">
         {% if page.title %}
@@ -29,13 +30,6 @@
             {% if page.date %}
             <div class="fw600 light-silver mt1">{{ page.date | date: "%Y-%m-%d" }}</div>
             {% endif %}
-            <h1 class="ttu f3 mt0 lh-title cb mb2">
-                {% if is_post %}
-                {% endif %}
-                {{ page.title }}
-
-                <h5 class="fw600 light-silver mt1">{{page.description}}</h5>
-            </h1>
             {% if is_post and site.share %}
             <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
             <script>!function (d, s, id) {
