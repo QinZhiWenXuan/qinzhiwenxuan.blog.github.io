@@ -30,6 +30,14 @@ markdown: "kramdown"
 
 theme: "minima"
 
+links:
+  - name:         Posts
+    url:          /
+    external:     false
+  - name:         About me
+    url:          /about
+    external:     false
+
 plugins:
   - jekyll-feed
 

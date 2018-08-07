@@ -46,3 +46,30 @@
     fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
 {% endif %}
+<script>
+    window.onload = function () {
+        try {
+            var postHead = document.getElementsByClassName("post-list-heading");
+            var postList = document.getElementsByClassName("post-list");
+            var subscribe = document.getElementsByClassName("rss-subscribe");
+            console.debug(postHead);
+            console.debug(postList);
+            console.debug(subscribe);
+            for (var i = 0; i < postHead.length; i++) {
+                var t = postHead[i];
+                t.parentNode.removeChild(t);
+            }
+            for (var i = 0; i < postList.length; i++) {
+                var t = postList[i];
+                t.parentNode.removeChild(t);
+            }
+            for (var i = 0; i < subscribe.length; i++) {
+                var t = subscribe[i];
+                t.parentNode.removeChild(t);
+            }
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+</script>
